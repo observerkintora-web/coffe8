@@ -79,7 +79,7 @@
   }
 
   function faceMarkup(meta, mystery) {
-    if (mystery) return '<span class="face front mystery">✦</span>';
+    if (mystery) return '<span class="face front mystery" aria-hidden="true"></span>';
     return '<span class="face front prize-face ' + meta.tier + '">' +
       '<span class="tier-tag">' + meta.tier + '</span>' +
       '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +

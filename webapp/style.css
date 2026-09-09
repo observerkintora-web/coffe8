@@ -37,7 +37,7 @@ html, body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(21,12,6,0.45) 0%, rgba(21,12,6,0.15) 30%, rgba(21,12,6,0.8) 100%);
+  background: linear-gradient(180deg, rgba(21,12,6,0.2) 0%, rgba(21,12,6,0.04) 34%, rgba(21,12,6,0.5) 100%);
 }
 
 .fx-canvas {
@@ -160,16 +160,16 @@ h1 {
 
 .card-slot {
   position: absolute;
-  width: 92px;
+  width: 104px;
   transition: transform 0.35s cubic-bezier(.22,.9,.32,1);
 }
 
 /* overlapping fan for 5 cards — bigger cards, tighter spacing */
-.card-slot[data-i="0"] { transform: translateX(-108px) translateY(22px) rotate(-18deg); z-index: 1; }
-.card-slot[data-i="1"] { transform: translateX(-56px) translateY(6px) rotate(-9deg); z-index: 2; }
+.card-slot[data-i="0"] { transform: translateX(-122px) translateY(22px) rotate(-15deg); z-index: 1; }
+.card-slot[data-i="1"] { transform: translateX(-63px) translateY(6px) rotate(-7deg); z-index: 2; }
 .card-slot[data-i="2"] { transform: translateX(0) translateY(-6px) rotate(0deg); z-index: 3; }
-.card-slot[data-i="3"] { transform: translateX(56px) translateY(6px) rotate(9deg); z-index: 2; }
-.card-slot[data-i="4"] { transform: translateX(108px) translateY(22px) rotate(18deg); z-index: 1; }
+.card-slot[data-i="3"] { transform: translateX(63px) translateY(6px) rotate(7deg); z-index: 2; }
+.card-slot[data-i="4"] { transform: translateX(122px) translateY(22px) rotate(15deg); z-index: 1; }
 
 .card-slot.disabled .card-btn { pointer-events: none; }
 
@@ -280,19 +280,11 @@ h1 {
 }
 
 .face.front.mystery {
-  background: radial-gradient(circle, rgba(255,216,115,0.35), #1c1108 78%);
-  font-size: 30px;
-  overflow: hidden;
+  visibility: hidden;
+  background: transparent;
 }
 
-.face.front.mystery::before {
-  content: "";
-  position: absolute;
-  inset: -30%;
-  background: url("assets/prizes/rays.webp") center / contain no-repeat;
-  animation: spinRays 12s linear infinite;
-  opacity: 0.8;
-}
+.face.front.prize-face { visibility: visible; }
 
 .card-slot.other.common .face.front { box-shadow: inset 0 0 0 1.5px var(--tier-common); }
 .card-slot.other.rare .face.front { box-shadow: inset 0 0 0 1.5px var(--tier-rare); }
@@ -565,10 +557,38 @@ h1 {
 
 .scene-pick {
   justify-content: flex-start;
+  position: relative;
+}
+
+.scene-pick h1 {
+  color: #fff;
+  text-shadow: 0 2px 5px rgba(0,0,0,.9), 0 0 16px rgba(0,0,0,.65);
+}
+
+.scene-pick .sub {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.7);
 }
 
 .scene-pick .cards {
-  margin-top: 42px;
+  margin-top: 34px;
+}
+
+.scene-pick .cards-stage {
+  min-height: 308px;
+}
+
+.scene-pick .face.front.mystery {
+  visibility: hidden !important;
+}
+
+.scene-pick .cards::before {
+  width: 330px;
+  height: 130px;
+  bottom: -18px;
+  background: url("assets/prizes/rays.webp") center / contain no-repeat;
+  filter: drop-shadow(0 0 16px rgba(255,216,115,.68)) saturate(.9);
+  opacity: .62;
 }
 
 .card-slot .card-btn {
@@ -887,11 +907,11 @@ h1 {
 
 @media (max-width: 390px) {
   .screen { padding-left: 14px; padding-right: 14px; }
-  .card-slot { width: 78px; }
-  .card-slot[data-i="0"] { transform: translateX(-88px) translateY(22px) rotate(-15deg); }
-  .card-slot[data-i="1"] { transform: translateX(-45px) translateY(6px) rotate(-7deg); }
-  .card-slot[data-i="3"] { transform: translateX(45px) translateY(6px) rotate(7deg); }
-  .card-slot[data-i="4"] { transform: translateX(88px) translateY(22px) rotate(15deg); }
+  .card-slot { width: 88px; }
+  .card-slot[data-i="0"] { transform: translateX(-101px) translateY(22px) rotate(-14deg); }
+  .card-slot[data-i="1"] { transform: translateX(-52px) translateY(6px) rotate(-6deg); }
+  .card-slot[data-i="3"] { transform: translateX(52px) translateY(6px) rotate(6deg); }
+  .card-slot[data-i="4"] { transform: translateX(101px) translateY(22px) rotate(14deg); }
   .gallery-card:nth-child(1) { margin-left: -96px; }
   .gallery-card:nth-child(2) { margin-left: -48px; }
   .gallery-card:nth-child(4) { margin-left: 48px; }
@@ -923,15 +943,15 @@ h1 {
   height: 245px;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255,208,120,.52) 0%, rgba(111,145,72,.22) 36%, transparent 72%);
-  filter: blur(14px);
-  opacity: .34;
+  background: url("assets/prizes/rays.webp") center / contain no-repeat;
+  filter: drop-shadow(0 0 18px rgba(255,216,115,.65)) saturate(.85);
+  opacity: .38;
   animation: stageGlow 6.2s ease-in-out infinite;
 }
 
 @keyframes stageGlow {
   0%, 100% { opacity: .26; transform: translateX(calc(-50% - 8px)) scale(.92); }
-  50% { opacity: .52; transform: translateX(calc(-50% + 8px)) scale(1.06); }
+  50% { opacity: .5; transform: translateX(calc(-50% + 8px)) scale(1.06); }
 }
 
 .ambient-bean {
@@ -980,7 +1000,7 @@ h1 {
   bottom: 5%;
   height: 32%;
   border-radius: 40%;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,.38));
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.52) 74%, rgba(0,0,0,.72) 100%);
   z-index: 0;
   pointer-events: none;
 }
