@@ -841,6 +841,28 @@ h1 {
   margin: 2px 0 0;
 }
 
+.gallery-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 12px;
+  margin: -3px 0 8px;
+}
+
+.gallery-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(244,233,216,.28);
+  box-shadow: 0 1px 4px rgba(0,0,0,.35);
+}
+
+.gallery-dot.active {
+  background: var(--cream);
+  transform: scale(1.15);
+}
+
 .scene-gallery .primary-btn { margin-top: auto; }
 
 @media (max-width: 390px) {

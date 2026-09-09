@@ -265,8 +265,11 @@
 
   function renderGallery() {
     var gallery = document.getElementById("galleryCards");
+    var dots = document.getElementById("galleryDots");
+    var galleryKeys = ["free_coffee", "syrup", "free_dessert", "size_up", "discount_10"];
     gallery.innerHTML = "";
-    ALL_KEYS.slice(0, CARD_COUNT).forEach(function (key, index) {
+    dots.innerHTML = "";
+    galleryKeys.forEach(function (key, index) {
       var meta = metaFor(key);
       var card = document.createElement("div");
       card.className = "gallery-card " + meta.tier + (index === 2 ? " center" : "");
@@ -276,6 +279,11 @@
         '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +
         '<span>' + meta.name + '</span></div>';
       gallery.appendChild(card);
+
+      var dot = document.createElement("span");
+      dot.className = "gallery-dot" + (index === 2 ? " active" : "");
+      dot.setAttribute("aria-hidden", "true");
+      dots.appendChild(dot);
     });
   }
 
