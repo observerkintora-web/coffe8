@@ -13,6 +13,8 @@
   var picked = false;
   var pendingResult = null;
   var beanImg = new Image();
+  var beanReady = false;
+  beanImg.onload = function () { beanReady = true; };
   beanImg.src = "assets/prizes/bean.webp";
 
   var PRIZE_META = {
@@ -146,36 +148,36 @@
   }
 
   function burstParticles(tier) {
-    if (!beanImg.complete || !beanImg.naturalWidth) {
+    if (!beanReady && (!beanImg.complete || !beanImg.naturalWidth)) {
       beanImg.addEventListener("load", function retryBurst() {
-        beanImg.removeEventListener("load", retryBurst);
         burstParticles(tier);
-      });
+      }, { once: true });
       return;
     }
-    var count = tier === "legendary" ? 45 : 38;
+    beanReady = true;
+    var count = tier === "legendary" ? 52 : 44;
     var particles = [];
     var centerX = canvas.width / 2;
     var centerY = canvas.height * 0.38;
     for (var i = 0; i < count; i++) {
       var isRain = i >= 18;
-      var layer = i < 10 ? "back" : i < 32 ? "mid" : "front";
+      var layer = i < 12 ? "back" : i < 35 ? "mid" : "front";
       var angle = isRain ? Math.PI * (0.15 + Math.random() * 0.7) : Math.random() * Math.PI * 2;
-      var speed = isRain ? 0.8 + Math.random() * 2.2 : 3.8 + Math.random() * 8;
-      var scale = layer === "back" ? .55 + Math.random() * .2 : layer === "mid" ? .72 + Math.random() * .28 : 1.1 + Math.random() * .5;
+      var speed = isRain ? 1.1 + Math.random() * 2.8 : 4.5 + Math.random() * 9;
+      var scale = layer === "back" ? .8 + Math.random() * .25 : layer === "mid" ? 1 + Math.random() * .35 : 1.35 + Math.random() * .65;
       particles.push({
         x: isRain ? Math.random() * canvas.width : centerX + (Math.random() - 0.5) * 28,
         y: isRain ? -20 - Math.random() * 180 : centerY + (Math.random() - 0.5) * 28,
         vx: Math.cos(angle) * speed,
         vy: isRain ? 1.5 + Math.random() * 2.5 : Math.sin(angle) * speed - 2,
         gravity: isRain ? .035 + Math.random() * .045 : .1 + Math.random() * .12,
-        size: (layer === "front" ? 17 : layer === "mid" ? 12 : 8) * scale,
+        size: (layer === "front" ? 25 : layer === "mid" ? 18 : 13) * scale,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * (isRain ? .16 : .32),
         delay: isRain ? 360 + Math.random() * 720 : Math.random() * 180,
         age: 0,
         layer: layer,
-        opacity: layer === "back" ? 0.42 : layer === "mid" ? 0.82 : 1,
+        opacity: layer === "back" ? 0.58 : layer === "mid" ? 0.95 : 1,
         isRain: isRain,
       });
     }
@@ -191,7 +193,7 @@
       particles.forEach(function (particle) {
         if (elapsed < particle.delay) return;
         particle.age += delta * 16.67;
-        if (particle.age > 2250) return;
+        if (particle.age > 2700) return;
         active = true;
         var burst = Math.min(particle.age / (particle.isRain ? 1100 : 700), 1);
         particle.x += particle.vx * delta * (burst < 1 ? 1 : .55);
@@ -199,7 +201,7 @@
         particle.vy += particle.gravity * delta;
         particle.rotation += particle.rotationSpeed * delta;
         ctx.save();
-        ctx.globalAlpha = particle.opacity * Math.max(0, 1 - Math.max(0, particle.age - 1650) / 600);
+        ctx.globalAlpha = particle.opacity * Math.max(0, 1 - Math.max(0, particle.age - 2050) / 650);
         ctx.filter = particle.layer === "back" ? "blur(1.6px)" : particle.layer === "front" ? "blur(.25px)" : "none";
         ctx.translate(particle.x, particle.y);
         ctx.rotate(particle.rotation);
