@@ -32,8 +32,10 @@
 
   var cardsEl = document.getElementById("cards");
   var screenPick = document.getElementById("screenPick");
+  var screenSuspense = document.getElementById("screenSuspense");
   var screenReveal = document.getElementById("screenReveal");
   var screenGallery = document.getElementById("screenGallery");
+  var openBtn = document.getElementById("openBtn");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
   var flashEl = document.getElementById("flash");
@@ -138,8 +140,8 @@
           return;
         }
         pendingResult = result;
-        setState("OPENING_WINNER");
-        renderPrize(result);
+        setState("WINNER_CLOSED");
+        switchView(screenPick, screenSuspense);
       });
     }, 170);
   }
@@ -211,7 +213,7 @@
     document.getElementById("validityBox").textContent = result.prize.requires_purchase
       ? "🗓 Приз активується завтра і діє кілька днів. Покажіть код на касі при наступному замовленні."
       : "🗓 Приз діє кілька днів.";
-    switchView(screenPick, screenReveal);
+    switchView(screenSuspense, screenReveal);
     setTimeout(function () {
       setState("CELEBRATING");
       flashEl.classList.remove("fire");
@@ -268,6 +270,12 @@
     galleryPage = (galleryPage + direction + pageCount) % pageCount;
     renderGallery();
   }
+
+  openBtn.addEventListener("click", function () {
+    if (state !== "WINNER_CLOSED" || !pendingResult) return;
+    setState("OPENING_WINNER");
+    renderPrize(pendingResult);
+  });
 
   document.getElementById("nextBtn").addEventListener("click", function () {
     if (state !== "PRIZE_IDLE" && state !== "CELEBRATING") return;
