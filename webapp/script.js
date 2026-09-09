@@ -12,6 +12,8 @@
   var state = "PICK_IDLE";
   var picked = false;
   var pendingResult = null;
+  var galleryPage = 0;
+  var galleryTouchStartX = null;
   var beanImg = new Image();
   beanImg.src = "assets/prizes/bean.webp";
 
@@ -33,7 +35,6 @@
   var screenSuspense = document.getElementById("screenSuspense");
   var screenReveal = document.getElementById("screenReveal");
   var screenGallery = document.getElementById("screenGallery");
-  var screenThanks = document.getElementById("screenThanks");
   var openBtn = document.getElementById("openBtn");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
@@ -266,25 +267,46 @@
   function renderGallery() {
     var gallery = document.getElementById("galleryCards");
     var dots = document.getElementById("galleryDots");
-    var galleryKeys = ["free_coffee", "syrup", "free_dessert", "size_up", "discount_10"];
+    var pageSize = 5;
+    var galleryCatalog = ["free_coffee", "syrup", "free_dessert", "size_up", "discount_10", "extra_shot", "discount_50_second"];
+    var galleryPages = [];
+    for (var pageStart = 0; pageStart < galleryCatalog.length; pageStart += pageSize) {
+      galleryPages.push(galleryCatalog.slice(pageStart, pageStart + pageSize));
+    }
+    var galleryKeys = galleryPages[galleryPage] || galleryPages[0];
     gallery.innerHTML = "";
+    gallery.dataset.count = String(galleryKeys.length);
     dots.innerHTML = "";
+    galleryPages.forEach(function (_, index) {
+      var dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "gallery-dot" + (index === galleryPage ? " active" : "");
+      dot.setAttribute("aria-label", "Сторінка призів " + (index + 1));
+      dot.addEventListener("click", function () {
+        galleryPage = index;
+        renderGallery();
+      });
+      dots.appendChild(dot);
+    });
+
     galleryKeys.forEach(function (key, index) {
       var meta = metaFor(key);
       var card = document.createElement("div");
-      card.className = "gallery-card " + meta.tier + (index === 2 ? " center" : "");
+      var centerIndex = Math.round((galleryKeys.length - 1) / 2);
+      card.className = "gallery-card " + meta.tier + (index === centerIndex ? " center" : "");
       card.style.setProperty("--fan-index", index);
       card.innerHTML = '<div class="gallery-card-inner">' +
         '<span class="gallery-rarity">' + meta.tier + '</span>' +
         '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +
         '<span>' + meta.name + '</span></div>';
       gallery.appendChild(card);
-
-      var dot = document.createElement("span");
-      dot.className = "gallery-dot" + (index === 2 ? " active" : "");
-      dot.setAttribute("aria-hidden", "true");
-      dots.appendChild(dot);
     });
+  }
+
+  function changeGalleryPage(direction) {
+    var pageCount = Math.ceil(ALL_KEYS.length / 5);
+    galleryPage = (galleryPage + direction + pageCount) % pageCount;
+    renderGallery();
   }
 
   openBtn.addEventListener("click", function () {
@@ -296,18 +318,25 @@
 
   document.getElementById("nextBtn").addEventListener("click", function () {
     if (state !== "PRIZE_IDLE" && state !== "CELEBRATING") return;
-    setState("PRIZE_TRANSITION");
-    switchView(screenReveal, screenThanks);
-    setTimeout(function () {
-      renderGallery();
-      setState("PRIZE_GALLERY");
-      switchView(screenThanks, screenGallery);
-    }, 1350);
+    renderGallery();
+    setState("PRIZE_GALLERY");
+    switchView(screenReveal, screenGallery);
   });
 
   document.getElementById("closeBtn").addEventListener("click", function () {
     if (tg && tg.close) tg.close();
   });
+
+  document.getElementById("galleryCards").addEventListener("touchstart", function (event) {
+    galleryTouchStartX = event.touches[0].clientX;
+  }, { passive: true });
+
+  document.getElementById("galleryCards").addEventListener("touchend", function (event) {
+    if (galleryTouchStartX === null) return;
+    var distance = event.changedTouches[0].clientX - galleryTouchStartX;
+    galleryTouchStartX = null;
+    if (Math.abs(distance) > 35) changeGalleryPage(distance < 0 ? 1 : -1);
+  }, { passive: true });
 
   renderCards();
   setState("PICK_IDLE");
