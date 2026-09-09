@@ -32,10 +32,8 @@
 
   var cardsEl = document.getElementById("cards");
   var screenPick = document.getElementById("screenPick");
-  var screenSuspense = document.getElementById("screenSuspense");
   var screenReveal = document.getElementById("screenReveal");
   var screenGallery = document.getElementById("screenGallery");
-  var openBtn = document.getElementById("openBtn");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
   var flashEl = document.getElementById("flash");
@@ -117,44 +115,6 @@
     });
   }
 
-  function revealAll(chosenSlot, result) {
-    var winner = metaFor(result.prize.key);
-    var alternatives = shuffledKeys(result.prize.key);
-    var chosenIndex = Number(chosenSlot.dataset.i);
-    var altIndex = 0;
-    var slots = Array.prototype.slice.call(cardsEl.querySelectorAll(".card-slot"));
-
-    slots.forEach(function (slot, index) {
-      var meta = slot === chosenSlot ? winner : metaFor(alternatives[altIndex++ % alternatives.length]);
-      var delay = slot === chosenSlot ? 0 : 70 + Math.abs(index - chosenIndex) * 40;
-      slot.classList.add(slot === chosenSlot ? "chosen" : "other", meta.tier);
-      slot.dataset.tier = meta.tier;
-      slot.querySelector(".face.front").outerHTML = faceMarkup(meta, false);
-      slot.querySelector(".card-inner").style.transitionDelay = delay + "ms";
-      setTimeout(function () { slot.classList.add("flipped"); }, delay);
-    });
-
-    setTimeout(function () {
-      setState("ALL_REVEALED");
-      focusWinner(chosenSlot);
-    }, 1900);
-  }
-
-  function focusWinner(chosenSlot) {
-    setState("FOCUSING_WINNER");
-    Array.prototype.slice.call(cardsEl.querySelectorAll(".card-slot")).forEach(function (slot) {
-      if (slot !== chosenSlot) slot.classList.add("retreating");
-    });
-    chosenSlot.classList.add("winner-focus");
-
-    setTimeout(function () {
-      setState("WINNER_CLOSED");
-      chosenSlot.classList.remove("flipped");
-      switchView(screenPick, screenSuspense);
-      setTimeout(function () { openBtn.classList.add("visible"); }, 350);
-    }, 950);
-  }
-
   var FAIL_MESSAGES = {
     code_used: "Цей код вже використаний. Попросіть новий код у бариста.",
     no_code: "Потрібен персональний код від бариста.",
@@ -178,8 +138,8 @@
           return;
         }
         pendingResult = result;
-        setState("REVEALING_ALL");
-        revealAll(chosenSlot, result);
+        setState("OPENING_WINNER");
+        renderPrize(result);
       });
     }, 170);
   }
@@ -251,7 +211,7 @@
     document.getElementById("validityBox").textContent = result.prize.requires_purchase
       ? "🗓 Приз активується завтра і діє кілька днів. Покажіть код на касі при наступному замовленні."
       : "🗓 Приз діє кілька днів.";
-    switchView(screenSuspense, screenReveal);
+    switchView(screenPick, screenReveal);
     setTimeout(function () {
       setState("CELEBRATING");
       flashEl.classList.remove("fire");
@@ -308,13 +268,6 @@
     galleryPage = (galleryPage + direction + pageCount) % pageCount;
     renderGallery();
   }
-
-  openBtn.addEventListener("click", function () {
-    if (state !== "WINNER_CLOSED" || !pendingResult) return;
-    setState("OPENING_WINNER");
-    openBtn.classList.remove("visible");
-    renderPrize(pendingResult);
-  });
 
   document.getElementById("nextBtn").addEventListener("click", function () {
     if (state !== "PRIZE_IDLE" && state !== "CELEBRATING") return;
