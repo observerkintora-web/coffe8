@@ -560,3 +560,298 @@ h1 {
     animation: none !important;
   }
 }
+
+/* ---------------- cinematic storyboard states ---------------- */
+
+.scene-pick {
+  justify-content: flex-start;
+}
+
+.scene-pick .cards {
+  margin-top: 42px;
+}
+
+.card-slot .card-btn {
+  animation: cardFloat 3.6s ease-in-out infinite;
+}
+
+.card-slot[data-i="0"] .card-btn { animation-delay: 0s; }
+.card-slot[data-i="1"] .card-btn { animation-delay: .25s; }
+.card-slot[data-i="2"] .card-btn { animation-delay: .5s; }
+.card-slot[data-i="3"] .card-btn { animation-delay: .75s; }
+.card-slot[data-i="4"] .card-btn { animation-delay: 1s; }
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.015); }
+}
+
+.card-btn:hover .card-inner,
+.card-btn:focus-visible .card-inner {
+  transform: translateY(-6px) scale(1.025);
+}
+
+.card-slot.tap-pulse .card-btn {
+  animation: selectedImpulse .17s ease-out both;
+}
+
+@keyframes selectedImpulse {
+  50% { transform: scale(.97); }
+}
+
+.card-slot .card-inner {
+  transition: transform .72s cubic-bezier(.22,1,.36,1);
+}
+
+.card-slot.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-slot.chosen {
+  z-index: 10 !important;
+  animation: none;
+  transform: translateX(0) translateY(-14px) scale(1.1) rotate(0deg) !important;
+  transition: transform .72s cubic-bezier(.22,1,.36,1), opacity .6s ease, filter .6s ease;
+}
+
+.card-slot.chosen .card-btn {
+  animation: chosenBreath 2.8s ease-in-out infinite;
+}
+
+@keyframes chosenBreath {
+  0%, 100% { transform: scale(1.08); }
+  50% { transform: scale(1.1) translateY(-2px); }
+}
+
+.card-slot.other {
+  animation: none;
+  opacity: .68;
+  filter: brightness(.76) saturate(.78) blur(.55px);
+  transform: scale(.97) !important;
+  transition: transform 1s cubic-bezier(.22,1,.36,1), opacity 1s ease, filter 1s ease;
+}
+
+.card-slot.other .card-btn {
+  animation: otherBreath 3.6s ease-in-out infinite;
+}
+
+@keyframes otherBreath {
+  0%, 100% { transform: scale(.97); }
+  50% { transform: scale(.98) translateY(-1px); }
+}
+
+.card-slot.chosen.common .face.front { box-shadow: 0 0 24px rgba(111,191,115,.55), inset 0 0 0 1.5px var(--tier-common); }
+.card-slot.chosen.rare .face.front { box-shadow: 0 0 24px rgba(79,176,234,.55), inset 0 0 0 1.5px var(--tier-rare); }
+.card-slot.chosen.epic .face.front { box-shadow: 0 0 24px rgba(180,124,240,.55), inset 0 0 0 1.5px var(--tier-epic); }
+.card-slot.chosen.legendary .face.front { box-shadow: 0 0 24px rgba(255,208,66,.65), inset 0 0 0 1.5px var(--tier-legendary); }
+
+.card-slot.retreating {
+  opacity: .25;
+  filter: brightness(.55) saturate(.65) blur(4px);
+  transform: translateX(calc((var(--fan-direction, 1) * 26px))) translateY(22px) scale(.9) !important;
+}
+
+.card-slot.winner-focus {
+  transform: translateX(0) translateY(-20px) scale(1.16) rotate(0deg) !important;
+}
+
+.scene-suspense {
+  justify-content: flex-start;
+  padding-top: 30px;
+}
+
+.suspense-title {
+  font-size: 32px;
+  margin: 10px 0 6px;
+}
+
+.suspense-sub {
+  color: var(--cream-dim);
+  margin: 0 0 24px;
+}
+
+.suspense-card {
+  width: min(54vw, 190px);
+  margin: 12px 0 26px;
+  isolation: isolate;
+}
+
+.suspense-card img {
+  z-index: 2;
+}
+
+.suspense-halo,
+.suspense-rays {
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+}
+
+.suspense-halo {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,216,115,.45), transparent 64%);
+  filter: blur(10px);
+  animation: haloBreath 3.4s ease-in-out infinite;
+}
+
+.suspense-rays {
+  background: url("assets/prizes/rays.webp") center / contain no-repeat;
+  opacity: .48;
+  animation: raysSettle 8s ease-in-out infinite;
+}
+
+@keyframes haloBreath {
+  0%, 100% { transform: scale(.9); opacity: .65; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes raysSettle {
+  0%, 100% { transform: scale(.92) rotate(-2deg); opacity: .32; }
+  50% { transform: scale(1.04) rotate(2deg); opacity: .58; }
+}
+
+#openBtn.suspense-open {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(15px) scale(.96);
+  margin-top: 8px;
+}
+
+#openBtn.suspense-open.visible {
+  visibility: visible;
+  animation: suspenseButtonIn .42s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+@keyframes suspenseButtonIn {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.scene-prize {
+  padding-top: 10px;
+}
+
+.scene-prize .reveal-icon,
+.scene-prize .reveal-icon img {
+  animation-duration: .65s;
+}
+
+.scene-prize .rays {
+  animation: raysReveal 1.25s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+@keyframes raysReveal {
+  0% { opacity: 0; transform: scale(.55) rotate(-8deg); }
+  60% { opacity: .75; transform: scale(1.15) rotate(3deg); }
+  100% { opacity: .32; transform: scale(1) rotate(0deg); }
+}
+
+.reveal-icon.celebrate img {
+  animation: prizeReveal .72s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes prizeReveal {
+  0% { transform: scale(.2) rotateY(90deg); opacity: 0; }
+  55% { transform: scale(1.08) rotateY(-8deg); opacity: 1; }
+  100% { transform: scale(1) rotateY(0); opacity: 1; }
+}
+
+.flash-overlay {
+  background: radial-gradient(circle at center, rgba(255,220,150,.55), rgba(255,180,70,.15), transparent 60%);
+}
+
+.flash-overlay.fire { animation: flashPop .45s ease-out; }
+
+.scene-gallery {
+  padding-top: 12px;
+}
+
+.gallery-title {
+  font-family: "Fraunces", serif;
+  font-size: 25px;
+  line-height: 1.2;
+  margin: 18px 0 8px;
+}
+
+.gallery-sub {
+  color: var(--cream-dim);
+  margin: 0 0 22px;
+}
+
+.gallery-cards {
+  position: relative;
+  width: min(100%, 390px);
+  height: 230px;
+  margin: 8px auto 16px;
+  perspective: 900px;
+}
+
+.gallery-card {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 84px;
+  aspect-ratio: 3 / 4.3;
+  transform-origin: 50% 100%;
+  transform: translateX(-50%) rotate(calc((var(--fan-index) - 2) * 8deg)) translateY(calc(abs(var(--fan-index) - 2) * 6px)) scale(.92);
+  opacity: .68;
+  filter: blur(.5px) brightness(.8);
+  animation: galleryBreath 3.8s ease-in-out infinite;
+  animation-delay: calc(var(--fan-index) * .2s);
+}
+
+.gallery-card:nth-child(1) { margin-left: -112px; }
+.gallery-card:nth-child(2) { margin-left: -56px; }
+.gallery-card:nth-child(3) { margin-left: 0; }
+.gallery-card:nth-child(4) { margin-left: 56px; }
+.gallery-card:nth-child(5) { margin-left: 112px; }
+.gallery-card.center { z-index: 3; opacity: 1; filter: none; transform: translateX(-50%) translateY(-12px) scale(1.05); }
+
+.gallery-card-inner {
+  height: 100%;
+  border: 1px solid rgba(232,180,95,.55);
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(52,34,22,.98), rgba(17,12,8,.98));
+  box-shadow: 0 10px 20px rgba(0,0,0,.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px;
+  text-align: center;
+}
+
+.gallery-card.common .gallery-card-inner { box-shadow: 0 0 16px rgba(111,191,115,.2); }
+.gallery-card.rare .gallery-card-inner { box-shadow: 0 0 16px rgba(79,176,234,.25); }
+.gallery-card.epic .gallery-card-inner { box-shadow: 0 0 18px rgba(180,124,240,.28); }
+.gallery-card.legendary .gallery-card-inner { box-shadow: 0 0 18px rgba(255,208,66,.3); }
+.gallery-card img { width: 54px; height: 64px; object-fit: contain; }
+.gallery-card span:last-child { font-size: 9px; line-height: 1.15; font-weight: 700; }
+.gallery-rarity { font-size: 7px; text-transform: uppercase; color: var(--cream-dim); }
+
+@keyframes galleryBreath {
+  0%, 100% { margin-bottom: 0; }
+  50% { margin-bottom: 3px; }
+}
+
+.gallery-note {
+  color: var(--cream-dim);
+  font-family: "Fraunces", serif;
+  font-size: 14px;
+  margin: 2px 0 0;
+}
+
+.scene-gallery .primary-btn { margin-top: auto; }
+
+@media (max-width: 390px) {
+  .screen { padding-left: 14px; padding-right: 14px; }
+  .card-slot { width: 78px; }
+  .card-slot[data-i="0"] { transform: translateX(-88px) translateY(22px) rotate(-15deg); }
+  .card-slot[data-i="1"] { transform: translateX(-45px) translateY(6px) rotate(-7deg); }
+  .card-slot[data-i="3"] { transform: translateX(45px) translateY(6px) rotate(7deg); }
+  .card-slot[data-i="4"] { transform: translateX(88px) translateY(22px) rotate(15deg); }
+  .gallery-card:nth-child(1) { margin-left: -96px; }
+  .gallery-card:nth-child(2) { margin-left: -48px; }
+  .gallery-card:nth-child(4) { margin-left: 48px; }
+  .gallery-card:nth-child(5) { margin-left: 96px; }
+}

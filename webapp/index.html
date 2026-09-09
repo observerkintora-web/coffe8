@@ -22,16 +22,25 @@
   </header>
 
   <!-- Screen 1: pick a card — also handles the "all cards flip" moment -->
-  <section id="screenPick" class="view">
+  <section id="screenPick" class="view scene-pick">
     <h1 id="pickTitle">Оберіть картку</h1>
     <p class="sub" id="pickSub">Під однією з них — ваш бонус. Кожна покупка — нова можливість.</p>
     <div class="cards" id="cards"></div>
-    <button id="openBtn" class="primary-btn" type="button" hidden>Відкрити 🎉</button>
     <p class="footnote" id="footnotePick">Приз активується завтра і діє кілька днів</p>
   </section>
 
-  <!-- Screen 2: reveal -->
-  <section id="screenReveal" class="view" hidden>
+  <section id="screenSuspense" class="view scene-suspense" hidden>
+    <p class="suspense-title">Твій приз чекає!</p>
+    <p class="suspense-sub">Натисни, щоб відкрити</p>
+    <div class="suspense-card" id="suspenseCard">
+      <span class="suspense-halo"></span>
+      <span class="suspense-rays"></span>
+      <img src="assets/prizes/card_back.webp" alt="Закрита карта" />
+    </div>
+    <button id="openBtn" class="primary-btn suspense-open" type="button">Відкрити 🎉</button>
+  </section>
+
+  <section id="screenReveal" class="view scene-prize" hidden>
     <p class="congrats-eyebrow">Вітаємо! Ви виграли</p>
     <span class="tier-badge" id="tierBadge">COMMON</span>
     <div class="reveal-icon" id="revealIconWrap">
@@ -41,6 +50,14 @@
     <h2 id="revealLabel"></h2>
     <div class="info-box" id="validityBox"></div>
     <button id="nextBtn" class="primary-btn" type="button">Чудово! <span>›</span></button>
+  </section>
+
+  <section id="screenGallery" class="view scene-gallery" hidden>
+    <p class="gallery-title">Ось які призи ще можна виграти</p>
+    <p class="gallery-sub">Спробуй ще раз наступного разу!</p>
+    <div class="gallery-cards" id="galleryCards"></div>
+    <button id="closeBtn" class="primary-btn" type="button">Спробуй ще раз наступного разу ☕</button>
+    <p class="gallery-note">Більше, ніж просто кава ♡</p>
   </section>
 
   <footer class="brand-footer">

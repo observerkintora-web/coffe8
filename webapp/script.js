@@ -7,9 +7,13 @@
     tg.expand();
   }
 
-  var API_BASE = ""; // set to your Render URL if hosting webapp separately
-  var API_URL = API_BASE + "/api/play";
+  var API_URL = "/api/play";
   var CARD_COUNT = 5;
+  var state = "PICK_IDLE";
+  var picked = false;
+  var pendingResult = null;
+  var beanImg = new Image();
+  beanImg.src = "assets/prizes/bean.webp";
 
   var PRIZE_META = {
     syrup: { icon: "syrup", name: "Сироп", tier: "common" },
@@ -21,20 +25,23 @@
     free_dessert: { icon: "free_dessert", name: "Безкоштовний десерт", tier: "legendary" },
   };
   var ALL_KEYS = Object.keys(PRIZE_META);
-
   var startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || "";
   var initData = (tg && tg.initData) || "";
 
   var cardsEl = document.getElementById("cards");
   var screenPick = document.getElementById("screenPick");
+  var screenSuspense = document.getElementById("screenSuspense");
   var screenReveal = document.getElementById("screenReveal");
+  var screenGallery = document.getElementById("screenGallery");
   var openBtn = document.getElementById("openBtn");
-  var flashEl = document.getElementById("flash");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
+  var flashEl = document.getElementById("flash");
 
-  var picked = false;
-  var pendingResult = null;
+  function setState(next) {
+    state = next;
+    document.body.dataset.state = next;
+  }
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -43,31 +50,6 @@
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
 
-  function randomOtherKey() {
-    return ALL_KEYS[Math.floor(Math.random() * ALL_KEYS.length)];
-  }
-
-  // ---------------- Screen 1: fanned cards ----------------
-
-  function renderCards() {
-    cardsEl.innerHTML = "";
-    for (var i = 0; i < CARD_COUNT; i++) {
-      var slot = document.createElement("div");
-      slot.className = "card-slot";
-      slot.dataset.i = String(i);
-      slot.innerHTML =
-        '<button type="button" class="card-btn">' +
-        '<span class="card-inner">' +
-        '<span class="face back"><img src="assets/prizes/card_back.webp" alt="" /></span>' +
-        '<span class="face front mystery">🎁</span>' +
-        "</span></button>";
-      slot.querySelector(".card-btn").addEventListener("click", function (evt) {
-        onCardClick(evt.currentTarget.closest(".card-slot"));
-      });
-      cardsEl.appendChild(slot);
-    }
-  }
-
   function switchView(from, to) {
     from.classList.add("leave");
     setTimeout(function () {
@@ -75,195 +57,245 @@
       from.classList.remove("leave");
       to.hidden = false;
       to.classList.add("enter");
-      setTimeout(function () { to.classList.remove("enter"); }, 500);
-    }, 260);
+      setTimeout(function () { to.classList.remove("enter"); }, 600);
+    }, 280);
   }
 
-  async function onCardClick(chosenSlot) {
-    if (picked) return;
-    picked = true;
+  function metaFor(key) {
+    return PRIZE_META[key] || PRIZE_META.syrup;
+  }
 
-    // fire the request immediately so it's likely resolved by the time
-    // the guest taps "Відкрити" — no dead waiting after that tap.
-    var resultPromise = fetch(API_URL, {
+  function shuffledKeys(excludedKey) {
+    var keys = ALL_KEYS.filter(function (key) { return key !== excludedKey; });
+    for (var i = keys.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = keys[i];
+      keys[i] = keys[j];
+      keys[j] = temp;
+    }
+    return keys;
+  }
+
+  function faceMarkup(meta, mystery) {
+    if (mystery) return '<span class="face front mystery">✦</span>';
+    return '<span class="face front prize-face ' + meta.tier + '">' +
+      '<span class="tier-tag">' + meta.tier + '</span>' +
+      '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +
+      '<span class="card-name">' + meta.name + '</span>' +
+      '</span>';
+  }
+
+  function renderCards() {
+    cardsEl.innerHTML = "";
+    for (var i = 0; i < CARD_COUNT; i++) {
+      var slot = document.createElement("div");
+      slot.className = "card-slot";
+      slot.dataset.i = String(i);
+      slot.innerHTML = '<button type="button" class="card-btn" aria-label="Обрати картку ' + (i + 1) + '">' +
+        '<span class="card-inner">' +
+        '<span class="face back"><img src="assets/prizes/card_back.webp" alt="" /></span>' +
+        faceMarkup(null, true) +
+        '</span></button>';
+      slot.querySelector(".card-btn").addEventListener("click", function (event) {
+        onCardClick(event.currentTarget.closest(".card-slot"));
+      });
+      cardsEl.appendChild(slot);
+    }
+  }
+
+  function requestPrize() {
+    return fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ initData: initData, code: startParam }),
-    })
-      .then(function (res) { return res.json(); })
-      .catch(function () { return { ok: false, reason: "network" }; });
+    }).then(function (res) {
+      return res.json();
+    }).catch(function () {
+      return { ok: false, reason: "network" };
+    });
+  }
 
-    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("medium");
+  function revealAll(chosenSlot, result) {
+    var winner = metaFor(result.prize.key);
+    var alternatives = shuffledKeys(result.prize.key);
+    var chosenIndex = Number(chosenSlot.dataset.i);
+    var altIndex = 0;
+    var slots = Array.prototype.slice.call(cardsEl.querySelectorAll(".card-slot"));
 
-    document.getElementById("pickTitle").textContent = "А ось що ховалось у картках…";
-    document.getElementById("pickSub").textContent = "Одну з них ви щойно обрали.";
-    document.getElementById("footnotePick").hidden = true;
-
-    var allSlots = Array.prototype.slice.call(cardsEl.querySelectorAll(".card-slot"));
-    allSlots.forEach(function (slot) {
-      var inner = slot.querySelector(".card-inner");
-      var front = slot.querySelector(".face.front");
-      if (slot === chosenSlot) {
-        slot.classList.add("chosen");
-        front.classList.add("mystery");
-        front.textContent = "✨";
-      } else {
-        var key = randomOtherKey();
-        var meta = PRIZE_META[key];
-        slot.classList.add("other", meta.tier);
-        front.classList.remove("mystery");
-        front.innerHTML =
-          '<span class="tier-tag">' + meta.tier + "</span>" +
-          '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +
-          '<span class="card-name">' + meta.name + "</span>";
-      }
-      inner.style.transform = "rotateY(180deg)";
-      inner.style.transition = "transform 0.7s cubic-bezier(.34,1.1,.4,1)";
+    slots.forEach(function (slot, index) {
+      var meta = slot === chosenSlot ? winner : metaFor(alternatives[altIndex++ % alternatives.length]);
+      var delay = slot === chosenSlot ? 0 : 70 + Math.abs(index - chosenIndex) * 40;
+      slot.classList.add(slot === chosenSlot ? "chosen" : "other", meta.tier);
+      slot.dataset.tier = meta.tier;
+      slot.querySelector(".face.front").outerHTML = faceMarkup(meta, false);
+      slot.querySelector(".card-inner").style.transitionDelay = delay + "ms";
+      setTimeout(function () { slot.classList.add("flipped"); }, delay);
     });
 
     setTimeout(function () {
-      openBtn.hidden = false;
-      openBtn.classList.add("rise-in");
-    }, 750);
+      setState("ALL_REVEALED");
+      focusWinner(chosenSlot);
+    }, 1900);
+  }
 
-    pendingResult = await resultPromise;
+  function focusWinner(chosenSlot) {
+    setState("FOCUSING_WINNER");
+    Array.prototype.slice.call(cardsEl.querySelectorAll(".card-slot")).forEach(function (slot) {
+      if (slot !== chosenSlot) slot.classList.add("retreating");
+    });
+    chosenSlot.classList.add("winner-focus");
 
-    openBtn.onclick = function () { onOpenClick(); };
+    setTimeout(function () {
+      setState("WINNER_CLOSED");
+      chosenSlot.classList.remove("flipped");
+      switchView(screenPick, screenSuspense);
+      setTimeout(function () { openBtn.classList.add("visible"); }, 350);
+    }, 950);
   }
 
   var FAIL_MESSAGES = {
-    code_used: "Цей код вже використаний. Попросіть новий код у бариста при наступній покупці.",
-    no_code: "Потрібен персональний код від бариста — він видається після оплати замовлення.",
-    bad_auth: "Не вдалося підтвердити запит. Спробуйте відкрити гру ще раз через QR.",
+    code_used: "Цей код вже використаний. Попросіть новий код у бариста.",
+    no_code: "Потрібен персональний код від бариста.",
+    bad_auth: "Не вдалося підтвердити запит. Відкрийте гру через QR.",
     network: "Немає з'єднання. Перевірте інтернет і спробуйте ще раз.",
   };
 
-  function onOpenClick() {
-    if (!pendingResult) return;
-    if (!pendingResult.ok) {
-      alert(FAIL_MESSAGES[pendingResult.reason] || "Щось пішло не так. Спробуйте ще раз.");
-      location.reload();
-      return;
-    }
-    renderReveal(pendingResult);
+  function onCardClick(chosenSlot) {
+    if (picked || state !== "PICK_IDLE") return;
+    picked = true;
+    setState("PICK_SELECTED");
+    chosenSlot.classList.add("tap-pulse");
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("medium");
+
+    var resultPromise = requestPrize();
+    setTimeout(function () {
+      resultPromise.then(function (result) {
+        if (!result.ok) {
+          alert(FAIL_MESSAGES[result.reason] || "Щось пішло не так. Спробуйте ще раз.");
+          location.reload();
+          return;
+        }
+        pendingResult = result;
+        setState("REVEALING_ALL");
+        revealAll(chosenSlot, result);
+      });
+    }, 170);
   }
 
-  // ---------------- Screen 2: reveal with casino-style burst ----------------
-
-  var beanImg = new Image();
-  beanImg.src = "assets/prizes/bean.webp";
-
   function burstParticles(tier) {
-    var count = tier === "legendary" ? 55 : tier === "epic" ? 42 : tier === "rare" ? 34 : 24;
-    var cx = canvas.width / 2;
-    var cy = canvas.height * 0.32;
-    var groundY = canvas.height * 0.98;
+    var count = tier === "legendary" ? 30 : 26;
     var particles = [];
+    var centerX = canvas.width / 2;
+    var centerY = canvas.height * 0.38;
     for (var i = 0; i < count; i++) {
-      var angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.15;
-      var speed = 6 + Math.random() * 9;
+      var layer = i < count * 0.3 ? "back" : i < count * 0.75 ? "mid" : "front";
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 2.8 + Math.random() * 7;
       particles.push({
-        x: cx, y: cy,
+        x: centerX + (Math.random() - 0.5) * 18,
+        y: centerY + (Math.random() - 0.5) * 18,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: 12 + Math.random() * 12,
-        rot: Math.random() * Math.PI * 2,
-        vrot: (Math.random() - 0.5) * 0.35,
-        bounces: 0,
-        life: 1,
-        decay: 0.006 + Math.random() * 0.008, // faster fade — controlled 1-1.5s burst, not endless
+        vy: Math.sin(angle) * speed - 2,
+        size: (layer === "front" ? 17 : layer === "mid" ? 12 : 8) + Math.random() * 7,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.24,
+        delay: Math.random() * 180,
+        age: 0,
+        layer: layer,
+        opacity: layer === "back" ? 0.4 : layer === "mid" ? 0.8 : 1,
       });
     }
 
     var start = performance.now();
     function tick(now) {
-      var dt = Math.min((now - start) / 16.6, 2.5);
-      start = now;
+      var elapsed = now - start;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      var alive = false;
-      particles.forEach(function (p) {
-        if (p.life <= 0) return;
-        alive = true;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.vy += 0.35 * dt;
-        p.rot += p.vrot * dt;
-
-        if (p.y > groundY && p.bounces < 2) {
-          p.y = groundY;
-          p.vy *= -0.45;
-          p.vx *= 0.7;
-          p.bounces++;
-        }
-        if (p.y > groundY) p.life -= 0.04;
-
-        p.life -= p.decay * dt;
-        ctx.globalAlpha = Math.max(p.life, 0);
+      var active = false;
+      particles.forEach(function (particle) {
+        if (elapsed < particle.delay) return;
+        particle.age += 16;
+        if (particle.age > 1850) return;
+        active = true;
+        var burst = Math.min(particle.age / 700, 1);
+        particle.x += particle.vx * (burst < 1 ? 1 : 0.55);
+        particle.y += particle.vy * (burst < 1 ? 1 : 0.55) + (burst >= 1 ? 0.3 : 0);
+        particle.vy += burst >= 1 ? 0.12 : 0;
+        particle.rotation += particle.rotationSpeed;
+        ctx.save();
+        ctx.globalAlpha = particle.opacity * Math.max(0, 1 - Math.max(0, particle.age - 1350) / 500);
+        ctx.filter = particle.layer === "back" ? "blur(1.5px)" : "none";
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation);
+        var height = particle.size * (beanImg.naturalHeight / Math.max(beanImg.naturalWidth, 1));
         if (beanImg.complete && beanImg.naturalWidth) {
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rot);
-          var h = p.size * (beanImg.naturalHeight / beanImg.naturalWidth);
-          ctx.drawImage(beanImg, -p.size / 2, -h / 2, p.size, h);
-          ctx.restore();
+          ctx.drawImage(beanImg, -particle.size / 2, -height / 2, particle.size, height);
         }
+        ctx.restore();
       });
-      ctx.globalAlpha = 1;
-      if (alive) requestAnimationFrame(tick);
+      if (active) requestAnimationFrame(tick);
       else ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     requestAnimationFrame(tick);
   }
 
-  function screenShake(intensity) {
-    var el = document.querySelector(".screen");
-    var frames = [
-      { transform: "translate(0,0)" },
-      { transform: "translate(-" + intensity + "px, " + intensity * 0.6 + "px)" },
-      { transform: "translate(" + intensity + "px, -" + intensity * 0.4 + "px)" },
-      { transform: "translate(-" + intensity * 0.6 + "px, " + intensity * 0.3 + "px)" },
-      { transform: "translate(" + intensity * 0.3 + "px, 0)" },
-      { transform: "translate(0,0)" },
-    ];
-    el.animate(frames, { duration: 380, easing: "ease-out" });
-  }
-
-  function renderReveal(result) {
-    var meta = PRIZE_META[result.prize.key] || { icon: "gift_box", name: result.prize.label, tier: "common" };
+  function renderPrize(result) {
+    var meta = metaFor(result.prize.key);
     var tier = result.prize.tier || meta.tier;
-
     document.getElementById("tierBadge").textContent = tier.toUpperCase();
     document.getElementById("tierBadge").className = "tier-badge " + tier;
     document.getElementById("revealIconWrap").querySelector(".rays").className = "rays " + tier;
     document.getElementById("revealIcon").src = "assets/prizes/" + meta.icon + ".webp";
     document.getElementById("revealLabel").textContent = meta.name;
-
-    var vf = new Date(result.valid_from);
-    var vu = new Date(result.valid_until);
-    var fmt = function (d) {
-      return d.toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit" }) +
-        " " + d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-    };
     document.getElementById("validityBox").textContent = result.prize.requires_purchase
-      ? "🗓 Приз активується " + fmt(vf) + " і діє до " + fmt(vu) + ". Покажіть код на касі при наступному замовленні."
-      : "🗓 Приз діє до " + fmt(vu) + ".";
-
-    switchView(screenPick, screenReveal);
-
+      ? "🗓 Приз активується завтра і діє кілька днів. Покажіть код на касі при наступному замовленні."
+      : "🗓 Приз діє кілька днів.";
+    switchView(screenSuspense, screenReveal);
     setTimeout(function () {
+      setState("CELEBRATING");
       flashEl.classList.remove("fire");
-      void flashEl.offsetWidth; // restart animation
+      void flashEl.offsetWidth;
       flashEl.classList.add("fire");
+      document.getElementById("revealIconWrap").classList.add("celebrate");
       burstParticles(tier);
-      screenShake(tier === "legendary" ? 10 : tier === "epic" ? 7 : 4);
-      document.getElementById("revealIconWrap").classList.add("shimmer");
       if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
-    }, 280);
-
-    document.getElementById("nextBtn").onclick = function () {
-      if (tg && tg.close) tg.close();
-    };
+      setTimeout(function () { setState("PRIZE_IDLE"); }, 1500);
+    }, 160);
   }
 
+  function renderGallery() {
+    var gallery = document.getElementById("galleryCards");
+    gallery.innerHTML = "";
+    ALL_KEYS.slice(0, CARD_COUNT).forEach(function (key, index) {
+      var meta = metaFor(key);
+      var card = document.createElement("div");
+      card.className = "gallery-card " + meta.tier + (index === 2 ? " center" : "");
+      card.style.setProperty("--fan-index", index);
+      card.innerHTML = '<div class="gallery-card-inner">' +
+        '<span class="gallery-rarity">' + meta.tier + '</span>' +
+        '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +
+        '<span>' + meta.name + '</span></div>';
+      gallery.appendChild(card);
+    });
+  }
+
+  openBtn.addEventListener("click", function () {
+    if (state !== "WINNER_CLOSED" || !pendingResult) return;
+    setState("OPENING_WINNER");
+    openBtn.classList.remove("visible");
+    renderPrize(pendingResult);
+  });
+
+  document.getElementById("nextBtn").addEventListener("click", function () {
+    if (state !== "PRIZE_IDLE" && state !== "CELEBRATING") return;
+    renderGallery();
+    setState("PRIZE_GALLERY");
+    switchView(screenReveal, screenGallery);
+  });
+
+  document.getElementById("closeBtn").addEventListener("click", function () {
+    if (tg && tg.close) tg.close();
+  });
+
   renderCards();
+  setState("PICK_IDLE");
 })();
