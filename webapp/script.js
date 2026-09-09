@@ -12,19 +12,17 @@
   var state = "PICK_IDLE";
   var picked = false;
   var pendingResult = null;
-  var galleryPage = 0;
-  var galleryTouchStartX = null;
   var beanImg = new Image();
   beanImg.src = "assets/prizes/bean.webp";
 
   var PRIZE_META = {
-    syrup: { icon: "syrup", name: "Сироп", tier: "common" },
-    size_up: { icon: "size_up", name: "Апгрейд розміру", tier: "common" },
-    discount_10: { icon: "discount_10", name: "-10% на замовлення", tier: "common" },
-    extra_shot: { icon: "extra_shot", name: "Extra shot", tier: "common" },
-    discount_50_second: { icon: "discount_50_second", name: "-50% на другий напій", tier: "rare" },
-    free_coffee: { icon: "free_coffee", name: "Безкоштовна кава", tier: "epic" },
-    free_dessert: { icon: "free_dessert", name: "Безкоштовний десерт", tier: "legendary" },
+    syrup: { icon: "syrup", name: "Сироп", tier: "common", description: "Вільний вибір" },
+    size_up: { icon: "size_up", name: "Апгрейд розміру", tier: "common", description: "Більший напій" },
+    discount_10: { icon: "discount_10", name: "-10% на замовлення", tier: "common", description: "На наступну каву" },
+    extra_shot: { icon: "extra_shot", name: "Extra shot", tier: "common", description: "Більше енергії" },
+    discount_50_second: { icon: "discount_50_second", name: "-50% на другий напій", tier: "rare", description: "Для компанії" },
+    free_coffee: { icon: "free_coffee", name: "Безкоштовна кава", tier: "epic", description: "Твій наступний фаворит" },
+    free_dessert: { icon: "free_dessert", name: "Безкоштовний десерт", tier: "legendary", description: "Солодкий момент" },
   };
   var ALL_KEYS = Object.keys(PRIZE_META);
   var startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || "";
@@ -228,47 +226,31 @@
 
   function renderGallery() {
     var gallery = document.getElementById("galleryCards");
-    var dots = document.getElementById("galleryDots");
-    var pageSize = 5;
-    var galleryCatalog = ["free_coffee", "syrup", "free_dessert", "size_up", "discount_10", "extra_shot", "discount_50_second"];
-    var galleryPages = [];
-    for (var pageStart = 0; pageStart < galleryCatalog.length; pageStart += pageSize) {
-      galleryPages.push(galleryCatalog.slice(pageStart, pageStart + pageSize));
-    }
-    var galleryKeys = galleryPages[galleryPage] || galleryPages[0];
+    var galleryKeys = ["free_coffee", "syrup", "free_dessert", "size_up", "discount_10", "extra_shot", "discount_50_second"];
     gallery.innerHTML = "";
-    gallery.dataset.count = String(galleryKeys.length);
-    dots.innerHTML = "";
-    galleryPages.forEach(function (_, index) {
-      var dot = document.createElement("button");
-      dot.type = "button";
-      dot.className = "gallery-dot" + (index === galleryPage ? " active" : "");
-      dot.setAttribute("aria-label", "Сторінка призів " + (index + 1));
-      dot.addEventListener("click", function () {
-        galleryPage = index;
-        renderGallery();
-      });
-      dots.appendChild(dot);
-    });
 
     galleryKeys.forEach(function (key, index) {
       var meta = metaFor(key);
       var card = document.createElement("div");
-      var centerIndex = Math.round((galleryKeys.length - 1) / 2);
-      card.className = "gallery-card " + meta.tier + (index === centerIndex ? " center" : "");
+      card.className = "gallery-card " + meta.tier;
       card.style.setProperty("--fan-index", index);
+      card.style.setProperty("--card-delay", (index * 0.18) + "s");
       card.innerHTML = '<div class="gallery-card-inner">' +
-        '<span class="gallery-rarity">' + meta.tier + '</span>' +
+        '<span class="gallery-rarity">' + rarityLabel(meta.tier) + '</span>' +
         '<img src="assets/prizes/' + meta.icon + '.webp" alt="" />' +
-        '<span>' + meta.name + '</span></div>';
+        '<span class="gallery-card-name">' + meta.name + '</span>' +
+        '<span class="gallery-card-description">' + meta.description + '</span></div>';
       gallery.appendChild(card);
     });
   }
 
-  function changeGalleryPage(direction) {
-    var pageCount = Math.ceil(ALL_KEYS.length / 5);
-    galleryPage = (galleryPage + direction + pageCount) % pageCount;
-    renderGallery();
+  function rarityLabel(tier) {
+    return {
+      common: "ЗВИЧАЙНИЙ",
+      rare: "РІДКІСНИЙ",
+      epic: "ЕПІЧНИЙ",
+      legendary: "ЛЕГЕНДАРНИЙ",
+    }[tier] || tier;
   }
 
   openBtn.addEventListener("click", function () {
@@ -283,21 +265,6 @@
     setState("PRIZE_GALLERY");
     switchView(screenReveal, screenGallery);
   });
-
-  document.getElementById("closeBtn").addEventListener("click", function () {
-    if (tg && tg.close) tg.close();
-  });
-
-  document.getElementById("galleryCards").addEventListener("touchstart", function (event) {
-    galleryTouchStartX = event.touches[0].clientX;
-  }, { passive: true });
-
-  document.getElementById("galleryCards").addEventListener("touchend", function (event) {
-    if (galleryTouchStartX === null) return;
-    var distance = event.changedTouches[0].clientX - galleryTouchStartX;
-    galleryTouchStartX = null;
-    if (Math.abs(distance) > 35) changeGalleryPage(distance < 0 ? 1 : -1);
-  }, { passive: true });
 
   renderCards();
   setState("PICK_IDLE");
