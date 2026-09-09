@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Кофейная рулетка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+<div class="bg"></div>
+<canvas id="fx" class="fx-canvas"></canvas>
+<div id="flash" class="flash-overlay"></div>
+
+<main class="screen">
+
+  <header class="head">
+    <div class="brand"><span class="brand-icon">☕</span><span id="shopName">Кофейня</span></div>
+  </header>
+
+  <!-- Screen 1: pick a card — also handles the "all cards flip" moment -->
+  <section id="screenPick" class="view">
+    <h1 id="pickTitle">Оберіть картку</h1>
+    <p class="sub" id="pickSub">Під однією з них — ваш бонус. Кожна покупка — нова можливість.</p>
+    <div class="cards" id="cards"></div>
+    <button id="openBtn" class="primary-btn" type="button" hidden>Відкрити 🎉</button>
+    <p class="footnote" id="footnotePick">Приз активується завтра і діє кілька днів</p>
+  </section>
+
+  <!-- Screen 2: reveal -->
+  <section id="screenReveal" class="view" hidden>
+    <p class="congrats-eyebrow">Вітаємо! Ви виграли</p>
+    <span class="tier-badge" id="tierBadge">COMMON</span>
+    <div class="reveal-icon" id="revealIconWrap">
+      <span class="rays"></span>
+      <img id="revealIcon" src="" alt="" />
+    </div>
+    <h2 id="revealLabel"></h2>
+    <div class="info-box" id="validityBox"></div>
+    <button id="nextBtn" class="primary-btn" type="button">Чудово! <span>›</span></button>
+  </section>
+
+  <footer class="brand-footer">
+    <span id="shopNameFooter">Кофейня</span>
+    <span class="tagline">Смакуй більше моментів</span>
+  </footer>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Кофейная рулетка — Админ</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Статистика</h1>
+    <div class="period-switch" id="periodSwitch">
+      <button data-days="1">День</button>
+      <button data-days="7" class="active">Неделя</button>
+      <button data-days="30">Месяц</button>
+    </div>
+  </header>
+
+  <div id="loading" class="loading">Загрузка…</div>
+  <div id="deniedMsg" class="denied" hidden>⛔ Доступ только для персонала кофейни.</div>
+
+  <section id="content" hidden>
+    <div class="cards">
+      <div class="stat-card"><span class="num" id="gamesIssued">0</span><span class="label">Игр выдано</span></div>
+      <div class="stat-card"><span class="num" id="gamesPlayed">0</span><span class="label">Игр сыграно</span></div>
+      <div class="stat-card"><span class="num" id="uniquePlayers">0</span><span class="label">Игроков</span></div>
+      <div class="stat-card"><span class="num" id="redeemedCount">0</span><span class="label">Призов использовано</span></div>
+    </div>
+
+    <h2>Призы по редкости</h2>
+    <div class="tiers" id="tiersBar"></div>
+
+    <h2>Экономика</h2>
+    <div class="money">
+      <div class="money-row"><span>Выручка с призов</span><strong id="revenue">0 грн</strong></div>
+      <div class="money-row"><span>Себестоимость использованных</span><strong id="costUsed">0 грн</strong></div>
+      <div class="money-row"><span>Себестоимость в обороте</span><strong id="costPending">0 грн</strong></div>
+      <div class="money-row highlight"><span>Окупаемость</span><strong id="roi">—</strong></div>
+    </div>
+
+    <h2>Последние призы</h2>
+    <div id="recentList" class="recent-list"></div>
+  </section>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
