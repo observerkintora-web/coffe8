@@ -25,7 +25,17 @@
   <section id="screenPick" class="view scene-pick">
     <h1 id="pickTitle">Оберіть картку</h1>
     <p class="sub" id="pickSub">Під однією з них — ваш бонус. Кожна покупка — нова можливість.</p>
-    <div class="cards" id="cards"></div>
+    <div class="cards-stage">
+      <span class="ambient-glow" aria-hidden="true"></span>
+      <span class="ambient-bean bean-1" aria-hidden="true"></span>
+      <span class="ambient-bean bean-2" aria-hidden="true"></span>
+      <span class="ambient-bean bean-3" aria-hidden="true"></span>
+      <span class="ambient-bean bean-4" aria-hidden="true"></span>
+      <span class="ambient-bean bean-5" aria-hidden="true"></span>
+      <span class="ambient-bean bean-6" aria-hidden="true"></span>
+      <span class="ambient-bean bean-7" aria-hidden="true"></span>
+      <div class="cards" id="cards"></div>
+    </div>
     <p class="footnote" id="footnotePick">Приз активується завтра і діє кілька днів</p>
   </section>
 
@@ -37,6 +47,11 @@
       <span class="suspense-rays"></span>
       <img src="assets/prizes/card_back.webp" alt="Закрита карта" />
     </div>
+    <div class="scene-beans suspense-beans" aria-hidden="true">
+      <span class="ambient-bean bean-1"></span><span class="ambient-bean bean-2"></span>
+      <span class="ambient-bean bean-3"></span><span class="ambient-bean bean-4"></span>
+      <span class="ambient-bean bean-5"></span>
+    </div>
     <button id="openBtn" class="primary-btn suspense-open" type="button">Відкрити 🎉</button>
   </section>
 
@@ -46,6 +61,10 @@
     <div class="reveal-icon" id="revealIconWrap">
       <span class="rays"></span>
       <img id="revealIcon" src="" alt="" />
+    </div>
+    <div class="scene-beans reveal-beans" aria-hidden="true">
+      <span class="ambient-bean bean-1"></span><span class="ambient-bean bean-2"></span>
+      <span class="ambient-bean bean-3"></span><span class="ambient-bean bean-4"></span>
     </div>
     <h2 id="revealLabel"></h2>
     <div class="info-box" id="validityBox"></div>
@@ -58,6 +77,16 @@
     <div class="gallery-cards" id="galleryCards"></div>
     <button id="closeBtn" class="primary-btn" type="button">Спробуй ще раз наступного разу ☕</button>
     <p class="gallery-note">Більше, ніж просто кава ♡</p>
+  </section>
+
+  <section id="screenThanks" class="view scene-thanks" hidden>
+    <div class="thanks-check">✓</div>
+    <h2>Чудово!</h2>
+    <p>Дякуємо, що граєте<br />разом з нами!</p>
+    <div class="scene-beans thanks-beans" aria-hidden="true">
+      <span class="ambient-bean bean-1"></span><span class="ambient-bean bean-2"></span>
+      <span class="ambient-bean bean-3"></span>
+    </div>
   </section>
 
   <footer class="brand-footer">

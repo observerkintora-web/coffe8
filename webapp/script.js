@@ -33,6 +33,7 @@
   var screenSuspense = document.getElementById("screenSuspense");
   var screenReveal = document.getElementById("screenReveal");
   var screenGallery = document.getElementById("screenGallery");
+  var screenThanks = document.getElementById("screenThanks");
   var openBtn = document.getElementById("openBtn");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
@@ -287,9 +288,13 @@
 
   document.getElementById("nextBtn").addEventListener("click", function () {
     if (state !== "PRIZE_IDLE" && state !== "CELEBRATING") return;
-    renderGallery();
-    setState("PRIZE_GALLERY");
-    switchView(screenReveal, screenGallery);
+    setState("PRIZE_TRANSITION");
+    switchView(screenReveal, screenThanks);
+    setTimeout(function () {
+      renderGallery();
+      setState("PRIZE_GALLERY");
+      switchView(screenThanks, screenGallery);
+    }, 1350);
   });
 
   document.getElementById("closeBtn").addEventListener("click", function () {
