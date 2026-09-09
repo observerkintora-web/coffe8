@@ -147,47 +147,54 @@
   }
 
   function burstParticles(tier) {
-    var count = tier === "legendary" ? 45 : 36;
+    var count = tier === "legendary" ? 45 : 38;
     var particles = [];
     var centerX = canvas.width / 2;
     var centerY = canvas.height * 0.38;
     for (var i = 0; i < count; i++) {
-      var layer = i < count * 0.3 ? "back" : i < count * 0.75 ? "mid" : "front";
-      var angle = Math.random() * Math.PI * 2;
-      var speed = 2.8 + Math.random() * 7;
+      var isRain = i >= 18;
+      var layer = i < 10 ? "back" : i < 32 ? "mid" : "front";
+      var angle = isRain ? Math.PI * (0.15 + Math.random() * 0.7) : Math.random() * Math.PI * 2;
+      var speed = isRain ? 0.8 + Math.random() * 2.2 : 3.8 + Math.random() * 8;
+      var scale = layer === "back" ? .55 + Math.random() * .2 : layer === "mid" ? .72 + Math.random() * .28 : 1.1 + Math.random() * .5;
       particles.push({
-        x: centerX + (Math.random() - 0.5) * 18,
-        y: centerY + (Math.random() - 0.5) * 18,
+        x: isRain ? Math.random() * canvas.width : centerX + (Math.random() - 0.5) * 28,
+        y: isRain ? -20 - Math.random() * 180 : centerY + (Math.random() - 0.5) * 28,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
-        size: (layer === "front" ? 17 : layer === "mid" ? 12 : 8) + Math.random() * 7,
+        vy: isRain ? 1.5 + Math.random() * 2.5 : Math.sin(angle) * speed - 2,
+        gravity: isRain ? .035 + Math.random() * .045 : .1 + Math.random() * .12,
+        size: (layer === "front" ? 17 : layer === "mid" ? 12 : 8) * scale,
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.24,
-        delay: Math.random() * 180,
+        rotationSpeed: (Math.random() - 0.5) * (isRain ? .16 : .32),
+        delay: isRain ? 360 + Math.random() * 720 : Math.random() * 180,
         age: 0,
         layer: layer,
-        opacity: layer === "back" ? 0.4 : layer === "mid" ? 0.8 : 1,
+        opacity: layer === "back" ? 0.42 : layer === "mid" ? 0.82 : 1,
+        isRain: isRain,
       });
     }
 
     var start = performance.now();
+    var last = start;
     function tick(now) {
       var elapsed = now - start;
+      var delta = Math.min(now - last, 32) / 16.67;
+      last = now;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       var active = false;
       particles.forEach(function (particle) {
         if (elapsed < particle.delay) return;
-        particle.age += 16;
+        particle.age += delta * 16.67;
         if (particle.age > 2250) return;
         active = true;
-        var burst = Math.min(particle.age / 700, 1);
-        particle.x += particle.vx * (burst < 1 ? 1 : 0.55);
-        particle.y += particle.vy * (burst < 1 ? 1 : 0.55) + (burst >= 1 ? 0.3 : 0);
-        particle.vy += burst >= 1 ? 0.12 : 0;
-        particle.rotation += particle.rotationSpeed;
+        var burst = Math.min(particle.age / (particle.isRain ? 1100 : 700), 1);
+        particle.x += particle.vx * delta * (burst < 1 ? 1 : .55);
+        particle.y += particle.vy * delta;
+        particle.vy += particle.gravity * delta;
+        particle.rotation += particle.rotationSpeed * delta;
         ctx.save();
         ctx.globalAlpha = particle.opacity * Math.max(0, 1 - Math.max(0, particle.age - 1650) / 600);
-        ctx.filter = particle.layer === "back" ? "blur(1.5px)" : "none";
+        ctx.filter = particle.layer === "back" ? "blur(1.6px)" : particle.layer === "front" ? "blur(.25px)" : "none";
         ctx.translate(particle.x, particle.y);
         ctx.rotate(particle.rotation);
         var height = particle.size * (beanImg.naturalHeight / Math.max(beanImg.naturalWidth, 1));
