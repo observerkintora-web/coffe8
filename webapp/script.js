@@ -34,7 +34,6 @@
   var screenReveal = document.getElementById("screenReveal");
   var screenCode = document.getElementById("screenCode");
   var screenGallery = document.getElementById("screenGallery");
-  var screenGoodbye = document.getElementById("screenGoodbye");
   var openBtn = document.getElementById("openBtn");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
@@ -147,6 +146,13 @@
   }
 
   function burstParticles(tier) {
+    if (!beanImg.complete || !beanImg.naturalWidth) {
+      beanImg.addEventListener("load", function retryBurst() {
+        beanImg.removeEventListener("load", retryBurst);
+        burstParticles(tier);
+      });
+      return;
+    }
     var count = tier === "legendary" ? 45 : 38;
     var particles = [];
     var centerX = canvas.width / 2;
@@ -332,14 +338,12 @@
     switchView(screenGallery, screenCode);
   });
 
-  document.getElementById("finishBtn").addEventListener("click", function () {
-    setState("GOODBYE");
-    switchView(screenCode, screenGoodbye);
-  });
-
-  document.getElementById("closeAppBtn").addEventListener("click", function () {
+  function closeMiniApp() {
     if (tg && typeof tg.close === "function") tg.close();
-  });
+  }
+
+  document.getElementById("finishBtn").addEventListener("click", closeMiniApp);
+  document.getElementById("closeGalleryBtn").addEventListener("click", closeMiniApp);
 
   renderCards();
   setState("PICK_IDLE");

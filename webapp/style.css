@@ -1373,6 +1373,13 @@ h1 {
   margin: auto auto 0;
 }
 
+.gallery-close {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 310px);
+  margin: 8px auto 0;
+}
+
 .scene-goodbye {
   position: relative;
   justify-content: center;
