@@ -47,7 +47,7 @@
       <span class="suspense-rays" aria-hidden="true"></span>
       <img src="assets/prizes/card_back.webp" alt="Закрита карта" />
     </div>
-    <button id="openBtn" class="primary-btn" type="button">Відкрити 🎉</button>
+    <button id="openBtn" class="primary-btn" type="button">Відкрити приз 🎉</button>
   </section>
 
   <section id="screenReveal" class="view scene-prize" hidden>
@@ -63,14 +63,42 @@
     </div>
     <h2 id="revealLabel"></h2>
     <div class="info-box" id="validityBox"></div>
-    <button id="nextBtn" class="primary-btn" type="button">Чудово! <span>›</span></button>
+    <button id="nextBtn" class="primary-btn" type="button">Отримати код 🔐 <span>›</span></button>
+  </section>
+
+  <section id="screenCode" class="view scene-code" hidden>
+    <p class="congrats-eyebrow">Твій приз готовий</p>
+    <span class="tier-badge" id="codeTierBadge">COMMON</span>
+    <div class="code-prize-row">
+      <img id="codePrizeIcon" src="" alt="" />
+      <div><h2 id="codePrizeLabel"></h2><p id="codePrizeDescription"></p></div>
+    </div>
+    <div class="ticket-panel">
+      <span class="ticket-caption">ТВІЙ КОД</span>
+      <div class="ticket-code-row"><strong id="ticketCode">------</strong><button id="copyCodeBtn" class="icon-btn" type="button" aria-label="Скопіювати код" title="Скопіювати код">⧉</button></div>
+      <span id="copyFeedback" class="copy-feedback" aria-live="polite"></span>
+    </div>
+    <div class="activation-panel" id="codeValidity"></div>
+    <p class="cashier-note">Покажіть цей код бариста на касі, щоб отримати приз.</p>
+    <div class="code-actions">
+      <button id="galleryBtn" class="primary-btn" type="button">Переглянути всі призи 🎁</button>
+      <button id="finishBtn" class="secondary-btn" type="button">Завершити гру 👋</button>
+    </div>
   </section>
 
   <section id="screenGallery" class="view scene-gallery" hidden>
     <p class="gallery-title">Ось які призи<br />ще можна виграти</p>
     <p class="gallery-sub">Спробуй ще раз наступного разу!<br />Кожна гра — новий шанс.</p>
     <div class="gallery-cards" id="galleryCards"></div>
-    <button id="closeBtn" class="primary-btn gallery-cta" type="button"><span class="cta-calendar" aria-hidden="true"></span><span>Приходь завтра<br />і виграй знову!</span><span class="cta-chevron" aria-hidden="true">›</span></button>
+    <button id="backToCodeBtn" class="secondary-btn gallery-back" type="button">← Повернутися до мого коду</button>
+  </section>
+
+  <section id="screenGoodbye" class="view scene-goodbye" hidden>
+    <div class="goodbye-glow" aria-hidden="true"></div>
+    <div class="goodbye-cup" aria-hidden="true">☕</div>
+    <h2>До нових зустрічей!</h2>
+    <p>Повертайся за новою кавовою удачею</p>
+    <button id="closeAppBtn" class="danger-btn" type="button">Закрити гру 👋</button>
   </section>
 
   <footer class="brand-footer">

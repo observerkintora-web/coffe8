@@ -32,7 +32,9 @@
   var screenPick = document.getElementById("screenPick");
   var screenSuspense = document.getElementById("screenSuspense");
   var screenReveal = document.getElementById("screenReveal");
+  var screenCode = document.getElementById("screenCode");
   var screenGallery = document.getElementById("screenGallery");
+  var screenGoodbye = document.getElementById("screenGoodbye");
   var openBtn = document.getElementById("openBtn");
   var canvas = document.getElementById("fx");
   var ctx = canvas.getContext("2d");
@@ -145,7 +147,7 @@
   }
 
   function burstParticles(tier) {
-    var count = tier === "legendary" ? 30 : 26;
+    var count = tier === "legendary" ? 45 : 36;
     var particles = [];
     var centerX = canvas.width / 2;
     var centerY = canvas.height * 0.38;
@@ -176,7 +178,7 @@
       particles.forEach(function (particle) {
         if (elapsed < particle.delay) return;
         particle.age += 16;
-        if (particle.age > 1850) return;
+        if (particle.age > 2250) return;
         active = true;
         var burst = Math.min(particle.age / 700, 1);
         particle.x += particle.vx * (burst < 1 ? 1 : 0.55);
@@ -184,7 +186,7 @@
         particle.vy += burst >= 1 ? 0.12 : 0;
         particle.rotation += particle.rotationSpeed;
         ctx.save();
-        ctx.globalAlpha = particle.opacity * Math.max(0, 1 - Math.max(0, particle.age - 1350) / 500);
+        ctx.globalAlpha = particle.opacity * Math.max(0, 1 - Math.max(0, particle.age - 1650) / 600);
         ctx.filter = particle.layer === "back" ? "blur(1.5px)" : "none";
         ctx.translate(particle.x, particle.y);
         ctx.rotate(particle.rotation);
@@ -224,6 +226,30 @@
     }, 160);
   }
 
+  function renderCodeScreen(result) {
+    var meta = metaFor(result.prize.key);
+    var tier = result.prize.tier || meta.tier;
+    document.getElementById("codeTierBadge").textContent = rarityLabel(tier);
+    document.getElementById("codeTierBadge").className = "tier-badge " + tier;
+    document.getElementById("codePrizeIcon").src = "assets/prizes/" + meta.icon + ".webp";
+    document.getElementById("codePrizeLabel").textContent = meta.name;
+    document.getElementById("codePrizeDescription").textContent = meta.description;
+    document.getElementById("ticketCode").textContent = result.ticket_code || "------";
+    var validUntil = new Date(result.valid_until);
+    var expiry = validUntil.toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit" }) +
+      ", " + validUntil.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+    document.getElementById("codeValidity").textContent = result.prize.requires_purchase
+      ? "Приз активується завтра. Діє до " + expiry + "."
+      : "Приз діє до " + expiry + ".";
+  }
+
+  function showCodeScreen() {
+    if (!pendingResult) return;
+    renderCodeScreen(pendingResult);
+    setState("PRIZE_CODE");
+    switchView(screenReveal, screenCode);
+  }
+
   function renderGallery() {
     var gallery = document.getElementById("galleryCards");
     var galleryKeys = ["free_coffee", "syrup", "free_dessert", "size_up", "discount_10", "extra_shot", "discount_50_second"];
@@ -261,9 +287,51 @@
 
   document.getElementById("nextBtn").addEventListener("click", function () {
     if (state !== "PRIZE_IDLE" && state !== "CELEBRATING") return;
+    showCodeScreen();
+  });
+
+  document.getElementById("copyCodeBtn").addEventListener("click", function () {
+    if (!pendingResult || !pendingResult.ticket_code) return;
+    var code = pendingResult.ticket_code;
+    var feedback = document.getElementById("copyFeedback");
+    var finish = function () {
+      feedback.textContent = "Скопійовано ✓";
+      setTimeout(function () { feedback.textContent = ""; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(finish).catch(function () { finish(); });
+    } else {
+      var input = document.createElement("textarea");
+      input.value = code;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+      finish();
+    }
+  });
+
+  document.getElementById("galleryBtn").addEventListener("click", function () {
+    if (!pendingResult) return;
     renderGallery();
     setState("PRIZE_GALLERY");
-    switchView(screenReveal, screenGallery);
+    switchView(screenCode, screenGallery);
+  });
+
+  document.getElementById("backToCodeBtn").addEventListener("click", function () {
+    if (!pendingResult) return;
+    renderCodeScreen(pendingResult);
+    setState("PRIZE_CODE");
+    switchView(screenGallery, screenCode);
+  });
+
+  document.getElementById("finishBtn").addEventListener("click", function () {
+    setState("GOODBYE");
+    switchView(screenCode, screenGoodbye);
+  });
+
+  document.getElementById("closeAppBtn").addEventListener("click", function () {
+    if (tg && typeof tg.close === "function") tg.close();
   });
 
   renderCards();
